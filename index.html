@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AETHER & STONE | Management Console</title>
+    
+    <!-- Google Fonts: Cormorant Garamond & Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1',
+                            400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155',
+                            800: '#1e293b', 900: '#0f172a', 950: '#020617',
+                        },
+                        mono: {
+                            wash: '#f5f6f8',
+                            surface: '#ffffff',
+                            border: '#2c313a', /* Darkened for dashboard */
+                            muted: '#8b949e',
+                            body: '#c9d1d9', /* Lighter text for dark mode */
+                            dark: '#111317',
+                            pitch: '#0a0b0d',
+                            highlight: '#ffffff'
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+                        sans: ['"Plus Jakarta Sans"', '-apple-system', 'sans-serif'],
+                    },
+                    letterSpacing: {
+                        widest2: '0.22em',
+                        widest3: '0.3em',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            background-color: #0a0b0d; /* mono-pitch */
+            color: #c9d1d9; /* mono-body */
+        }
+
+        /* Custom delicate scrollbar */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: #0a0b0d; }
+        ::-webkit-scrollbar-thumb { background: #2c313a; border-radius: 2px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        .fine-border { border: 1px solid rgba(255, 255, 255, 0.08); }
+        .fine-border-b { border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+        .fine-border-t { border-top: 1px solid rgba(255, 255, 255, 0.08); }
+
+        /* Form Inputs */
+        .admin-input {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .admin-input:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+        }
+
+        /* Table Styles */
+        table { width: 100%; border-collapse: collapse; }
+        th { 
+            text-align: left; 
+            padding: 1rem; 
+            font-size: 0.65rem; 
+            text-transform: uppercase; 
+            letter-spacing: 0.2em; 
+            color: #8b949e; 
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            font-weight: 500;
+        }
+        td { 
+            padding: 1rem; 
+            font-size: 0.85rem; 
+            border-bottom: 1px solid rgba(255,255,255,0.04); 
+            color: #c9d1d9;
+        }
+        tr:hover td { background-color: rgba(255,255,255,0.02); }
+
+        /* Status Badges */
+        .status { padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
+        .status-active { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+        .status-pending { background: rgba(139, 148, 158, 0.1); color: #8b949e; border: 1px solid rgba(139, 148, 158, 0.2); }
+
+        /* Image treatment */
+        .img-mono { filter: grayscale(100%) contrast(110%) brightness(90%); }
+    </style>
+</head>
+<body class="font-sans antialiased selection:bg-white selection:text-mono-pitch flex h-screen overflow-hidden">
+
+    <!-- LOGIN SCREEN -->
+    <div id="loginScreen" class="fixed inset-0 z-50 bg-mono-pitch flex items-center justify-center transition-opacity duration-700">
+        <div class="w-full max-w-md p-8">
+            <div class="text-center mb-12">
+                <h1 class="font-serif text-3xl tracking-[0.25em] font-light text-white uppercase mb-2">Aether & Stone</h1>
+                <p class="text-[10px] uppercase tracking-[0.3em] text-mono-muted font-medium">Management Console</p>
+            </div>
+            
+            <form id="loginForm" class="space-y-6">
+                <div>
+                    <label class="block text-[10px] uppercase tracking-widest2 text-mono-muted mb-2">Administrator ID</label>
+                    <input type="text" value="admin@aetherstone.com" class="w-full admin-input py-3 px-4 text-sm font-light rounded-none" required>
+                </div>
+                <div>
+                    <label class="block text-[10px] uppercase tracking-widest2 text-mono-muted mb-2">Passkey</label>
+                    <input type="password" value="********" class="w-full admin-input py-3 px-4 text-sm font-light rounded-none" required>
+                </div>
+                <button type="submit" class="w-full bg-white text-mono-pitch hover:bg-gray-200 transition-colors py-4 text-xs tracking-widest2 uppercase font-semibold mt-4">
+                    Authenticate
+                </button>
+            </form>
+            <div class="mt-8 text-center text-[10px] text-mono-muted tracking-widest uppercase">
+                Secure Connection &bull; Authorized Personnel Only
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN DASHBOARD (Hidden initially) -->
+    <div id="dashboardApp" class="w-full h-full flex opacity-0 pointer-events-none transition-opacity duration-700">
+        
+        <!-- SIDEBAR -->
+        <aside class="w-64 bg-mono-dark fine-border-r flex flex-col h-full flex-shrink-0">
+            <!-- Brand -->
+            <div class="h-20 flex items-center justify-center fine-border-b">
+                <div class="text-center">
+                    <span class="block font-serif text-lg tracking-[0.2em] font-light text-white uppercase">Aether & Stone</span>
+                    <span class="block text-[8px] uppercase tracking-[0.3em] text-mono-muted mt-1">Workspace</span>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-1">
+                <button onclick="switchTab('overview')" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 text-xs tracking-widest uppercase text-white bg-white/5 rounded-sm transition-all" data-target="overview">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                    <span>Overview</span>
+                </button>
+                <button onclick="switchTab('tours')" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 text-xs tracking-widest uppercase text-mono-muted hover:text-white hover:bg-white/5 rounded-sm transition-all" data-target="tours">
+                    <i data-lucide="map" class="w-4 h-4"></i>
+                    <span>Tours & Routes</span>
+                </button>
+                <button onclick="switchTab('bookings')" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 text-xs tracking-widest uppercase text-mono-muted hover:text-white hover:bg-white/5 rounded-sm transition-all" data-target="bookings">
+                    <i data-lucide="calendar-check" class="w-4 h-4"></i>
+                    <span>Bookings</span>
+                </button>
+                <button onclick="switchTab('leads')" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 text-xs tracking-widest uppercase text-mono-muted hover:text-white hover:bg-white/5 rounded-sm transition-all" data-target="leads">
+                    <i data-lucide="users" class="w-4 h-4"></i>
+                    <span>Client Leads</span>
+                </button>
+                <button onclick="switchTab('payments')" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 text-xs tracking-widest uppercase text-mono-muted hover:text-white hover:bg-white/5 rounded-sm transition-all" data-target="payments">
+                    <i data-lucide="credit-card" class="w-4 h-4"></i>
+                    <span>Financials</span>
+                </button>
+                <button onclick="switchTab('reviews')" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 text-xs tracking-widest uppercase text-mono-muted hover:text-white hover:bg-white/5 rounded-sm transition-all" data-target="reviews">
+                    <i data-lucide="star" class="w-4 h-4"></i>
+                    <span>Endorsements</span>
+                </button>
+                <button onclick="switchTab('gallery')" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 text-xs tracking-widest uppercase text-mono-muted hover:text-white hover:bg-white/5 rounded-sm transition-all" data-target="gallery">
+                    <i data-lucide="image" class="w-4 h-4"></i>
+                    <span>Archives</span>
+                </button>
+            </nav>
+
+            <!-- Bottom Settings -->
+            <div class="p-4 fine-border-t">
+                <button onclick="switchTab('settings')" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 text-xs tracking-widest uppercase text-mono-muted hover:text-white hover:bg-white/5 rounded-sm transition-all" data-target="settings">
+                    <i data-lucide="settings" class="w-4 h-4"></i>
+                    <span>System Params</span>
+                </button>
+                <button onclick="logout()" class="w-full flex items-center space-x-3 px-4 py-3 text-xs tracking-widest uppercase text-mono-muted hover:text-red-400 rounded-sm transition-all mt-2">
+                    <i data-lucide="log-out" class="w-4 h-4"></i>
+                    <span>Disconnect</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="flex-1 flex flex-col h-full bg-mono-pitch relative">
+            
+            <!-- Top Header -->
+            <header class="h-20 fine-border-b flex items-center justify-between px-8 bg-mono-pitch/80 backdrop-blur-md sticky top-0 z-10">
+                <h2 id="viewTitle" class="font-serif text-xl tracking-[0.15em] text-white">System Overview</h2>
+                <div class="flex items-center space-x-4">
+                    <button class="relative text-mono-muted hover:text-white transition-colors">
+                        <i data-lucide="bell" class="w-5 h-5"></i>
+                        <span class="absolute -top-1 -right-1 w-2 h-2 bg-white rounded-full"></span>
+                    </button>
+                    <div class="h-4 w-px bg-mono-border"></div>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 rounded-full bg-mono-dark fine-border flex items-center justify-center text-xs text-white font-serif">A</div>
+                        <span class="text-xs uppercase tracking-widest text-mono-muted">Admin User</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Scrollable View Container -->
+            <div class="flex-1 overflow-y-auto p-8">
+                
+                <!-- 1. OVERVIEW TAB -->
+                <div id="tab-overview" class="tab-content block space-y-8">
+                    <!-- Metrics Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="bg-mono-dark fine-border p-6 rounded-sm">
+                            <div class="flex justify-between items-start mb-4">
+                                <span class="text-[10px] uppercase tracking-widest text-mono-muted">Active Journeys</span>
+                                <i data-lucide="map" class="w-4 h-4 text-white"></i>
+                            </div>
+                            <div class="text-3xl font-serif text-white mb-1">12</div>
+                            <div class="text-xs text-mono-muted"><span class="text-white">+2</span> this quarter</div>
+                        </div>
+                        <div class="bg-mono-dark fine-border p-6 rounded-sm">
+                            <div class="flex justify-between items-start mb-4">
+                                <span class="text-[10px] uppercase tracking-widest text-mono-muted">Pending Dossiers</span>
+                                <i data-lucide="users" class="w-4 h-4 text-white"></i>
+                            </div>
+                            <div class="text-3xl font-serif text-white mb-1">28</div>
+                            <div class="text-xs text-mono-muted">Awaiting curation</div>
+                        </div>
+                        <div class="bg-mono-dark fine-border p-6 rounded-sm">
+                            <div class="flex justify-between items-start mb-4">
+                                <span class="text-[10px] uppercase tracking-widest text-mono-muted">Confirmed Bookings</span>
+                                <i data-lucide="calendar-check" class="w-4 h-4 text-white"></i>
+                            </div>
+                            <div class="text-3xl font-serif text-white mb-1">45</div>
+                            <div class="text-xs text-mono-muted">For upcoming season</div>
+                        </div>
+                        <div class="bg-mono-dark fine-border p-6 rounded-sm">
+                            <div class="flex justify-between items-start mb-4">
+                                <span class="text-[10px] uppercase tracking-widest text-mono-muted">YTD Revenue</span>
+                                <i data-lucide="bar-chart-2" class="w-4 h-4 text-white"></i>
+                            </div>
+                            <div class="text-3xl font-serif text-white mb-1">$1.2M</div>
+                            <div class="text-xs text-mono-muted"><span class="text-white">+14%</span> vs last year</div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity Section -->
+                    <div class="bg-mono-dark fine-border rounded-sm">
+                        <div class="p-6 fine-border-b flex justify-between items-center">
+                            <h3 class="text-xs uppercase tracking-[0.2em] text-white">Recent Transactions & Activity</h3>
+                            <button class="text-[10px] uppercase tracking-widest text-mono-muted hover:text-white transition-colors">View All</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Ref ID</th>
+                                        <th>Client</th>
+                                        <th>Expedition</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="font-mono text-xs">TRX-8921</td>
+                                        <td>Eleanor Vance</td>
+                                        <td>Himalayan Ascendancy</td>
+                                        <td>Oct 12, 2023</td>
+                                        <td><span class="status status-active">Secured</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-mono text-xs">TRX-8920</td>
+                                        <td>Arthur Pendelton</td>
+                                        <td>Kyoto Zen Retreat</td>
+                                        <td>Oct 11, 2023</td>
+                                        <td><span class="status status-pending">Processing</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-mono text-xs">TRX-8919</td>
+                                        <td>Sophia Laurent</td>
+                                        <td>Swiss Alps Bespoke</td>
+                                        <td>Oct 09, 2023</td>
+                                        <td><span class="status status-active">Secured</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. TOURS TAB -->
+                <div id="tab-tours" class="tab-content hidden space-y-6">
+                    <div class="flex justify-between items-center">
+                        <div class="flex space-x-4">
+                            <input type="text" placeholder="Search expeditions..." class="admin-input py-2 px-4 text-sm w-64 rounded-sm">
+                            <select class="admin-input py-2 px-4 text-sm rounded-sm">
+                                <option>All Regions</option>
+                                <option>Asia</option>
+                                <option>Europe</option>
+                                <option>Polar</option>
+                            </select>
+                        </div>
+                        <button class="bg-white text-mono-pitch hover:bg-gray-200 transition-colors py-2 px-6 text-xs tracking-widest uppercase font-semibold rounded-sm">
+                            + Commission New Tour
+                        </button>
+                    </div>
+
+                    <div class="bg-mono-dark fine-border rounded-sm overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Expedition Name</th>
+                                        <th>Region</th>
+                                        <th>Duration</th>
+                                        <th>Base Tariff</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="font-medium text-white">The Arctic Silence</td>
+                                        <td>Svalbard</td>
+                                        <td>12 Days</td>
+                                        <td>$18,500</td>
+                                        <td><span class="status status-active">Active</span></td>
+                                        <td class="space-x-3">
+                                            <button class="text-mono-muted hover:text-white"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                                            <button class="text-mono-muted hover:text-white"><i data-lucide="archive" class="w-4 h-4"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-medium text-white">Patagonian Frontiers</td>
+                                        <td>South America</td>
+                                        <td>15 Days</td>
+                                        <td>$14,200</td>
+                                        <td><span class="status status-active">Active</span></td>
+                                        <td class="space-x-3">
+                                            <button class="text-mono-muted hover:text-white"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                                            <button class="text-mono-muted hover:text-white"><i data-lucide="archive" class="w-4 h-4"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-medium text-white">Kyoto Autumn Aesthetics</td>
+                                        <td>Japan</td>
+                                        <td>9 Days</td>
+                                        <td>$9,800</td>
+                                        <td><span class="status status-pending">Drafting</span></td>
+                                        <td class="space-x-3">
+                                            <button class="text-mono-muted hover:text-white"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                                            <button class="text-mono-muted hover:text-white"><i data-lucide="archive" class="w-4 h-4"></i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. BOOKINGS TAB -->
+                <div id="tab-bookings" class="tab-content hidden space-y-6">
+                     <div class="bg-mono-dark fine-border rounded-sm overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Booking ID</th>
+                                        <th>Principal Client</th>
+                                        <th>Itinerary</th>
+                                        <th>Departure</th>
+                                        <th>Pax</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="font-mono text-xs">BKG-1042</td>
+                                        <td>Mr. & Mrs. Sterling</td>
+                                        <td>The Arctic Silence</td>
+                                        <td>Nov 15, 2024</td>
+                                        <td>2</td>
+                                        <td><span class="status status-active">Confirmed</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-mono text-xs">BKG-1043</td>
+                                        <td>Dr. Aris Thorne</td>
+                                        <td>Patagonian Frontiers</td>
+                                        <td>Dec 02, 2024</td>
+                                        <td>1</td>
+                                        <td><span class="status status-pending">Deposit Req.</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. LEADS TAB -->
+                <div id="tab-leads" class="tab-content hidden space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Lead Card -->
+                        <div class="bg-mono-dark fine-border p-5 rounded-sm">
+                            <div class="flex justify-between items-start mb-3">
+                                <h4 class="text-white font-medium">Victoria M.</h4>
+                                <span class="text-[9px] uppercase tracking-widest text-mono-muted">2 hrs ago</span>
+                            </div>
+                            <p class="text-xs text-mono-muted mb-4 border-l-2 border-white/20 pl-3">"Inquiring about private jet charters for the Alpine route next January. Needs to accommodate a party of 6."</p>
+                            <div class="flex items-center space-x-2 text-[10px] uppercase tracking-widest text-white mb-4">
+                                <i data-lucide="mail" class="w-3 h-3"></i>
+                                <span>victoria.m@example.com</span>
+                            </div>
+                            <button class="w-full border border-white/20 hover:bg-white hover:text-mono-pitch transition-colors py-2 text-[10px] tracking-widest uppercase">
+                                Open Dossier
+                            </button>
+                        </div>
+                        
+                         <!-- Lead Card -->
+                        <div class="bg-mono-dark fine-border p-5 rounded-sm">
+                            <div class="flex justify-between items-start mb-3">
+                                <h4 class="text-white font-medium">J. Carmichael</h4>
+                                <span class="text-[9px] uppercase tracking-widest text-mono-muted">1 day ago</span>
+                            </div>
+                            <p class="text-xs text-mono-muted mb-4 border-l-2 border-white/20 pl-3">"Looking for a bespoke photography expedition in Namibia. Specific focus on desert adaptations."</p>
+                            <div class="flex items-center space-x-2 text-[10px] uppercase tracking-widest text-white mb-4">
+                                <i data-lucide="phone" class="w-3 h-3"></i>
+                                <span>+44 20 7123 4567</span>
+                            </div>
+                            <button class="w-full border border-white/20 hover:bg-white hover:text-mono-pitch transition-colors py-2 text-[10px] tracking-widest uppercase">
+                                Open Dossier
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. PAYMENTS TAB -->
+                <div id="tab-payments" class="tab-content hidden space-y-6">
+                     <div class="bg-mono-dark fine-border rounded-sm overflow-hidden">
+                        <div class="p-6 fine-border-b flex justify-between items-center">
+                            <h3 class="text-xs uppercase tracking-[0.2em] text-white">Ledger</h3>
+                            <div class="text-right">
+                                <div class="text-[10px] uppercase tracking-widest text-mono-muted mb-1">Current Balance</div>
+                                <div class="text-xl font-serif text-white">$452,800.00</div>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Reference</th>
+                                        <th>Client/Entity</th>
+                                        <th>Type</th>
+                                        <th>Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Oct 12, 2023</td>
+                                        <td class="font-mono text-xs text-mono-muted">INV-23-091</td>
+                                        <td class="text-white">Eleanor Vance</td>
+                                        <td>Wire Transfer</td>
+                                        <td class="text-white">+$18,500.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Oct 10, 2023</td>
+                                        <td class="font-mono text-xs text-mono-muted">EXP-Aero-44</td>
+                                        <td class="text-white">VistaJet Ltd.</td>
+                                        <td>Charter Fee</td>
+                                        <td class="text-mono-muted">-$42,000.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Oct 08, 2023</td>
+                                        <td class="font-mono text-xs text-mono-muted">INV-23-090</td>
+                                        <td class="text-white">Sophia Laurent</td>
+                                        <td>Credit Card</td>
+                                        <td class="text-white">+$5,000.00 (Dep)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. REVIEWS TAB -->
+                <div id="tab-reviews" class="tab-content hidden space-y-6">
+                    <div class="space-y-4">
+                        <div class="bg-mono-dark fine-border p-6 rounded-sm">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h4 class="text-white font-medium text-sm mb-1">The Himalayan Ascendancy</h4>
+                                    <div class="flex space-x-1 text-white">
+                                        <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                                        <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                                        <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                                        <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                                        <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-xs text-white">E. Vance</div>
+                                    <div class="text-[10px] uppercase tracking-widest text-mono-muted">Oct 2023</div>
+                                </div>
+                            </div>
+                            <p class="text-sm text-mono-muted leading-relaxed font-serif italic">"An execution of flawless precision. The attention to detail in the high-altitude camps was unparalleled. Aether & Stone truly understands the architecture of isolation."</p>
+                            <div class="mt-4 pt-4 fine-border-t flex space-x-4">
+                                <button class="text-[10px] uppercase tracking-widest text-white hover:text-mono-muted">Publish to Frontend</button>
+                                <button class="text-[10px] uppercase tracking-widest text-mono-muted hover:text-white">Send Gratitude</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 7. GALLERY TAB -->
+                <div id="tab-gallery" class="tab-content hidden space-y-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xs uppercase tracking-[0.2em] text-white">Visual Archives</h3>
+                        <button class="border border-white/20 hover:bg-white hover:text-mono-pitch transition-colors py-2 px-6 text-xs tracking-widest uppercase rounded-sm flex items-center space-x-2">
+                            <i data-lucide="upload" class="w-3 h-3"></i>
+                            <span>Ingest Media</span>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <!-- Images stylized with existing mono filter -->
+                        <div class="aspect-[4/5] bg-mono-dark fine-border relative group overflow-hidden cursor-pointer">
+                            <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover img-mono" alt="Archive">
+                            <div class="absolute inset-0 bg-mono-pitch/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <span class="text-[10px] uppercase tracking-widest text-white border border-white px-3 py-1">Manage</span>
+                            </div>
+                        </div>
+                        <div class="aspect-[4/5] bg-mono-dark fine-border relative group overflow-hidden cursor-pointer">
+                            <img src="https://images.unsplash.com/photo-1454496522488-7a8e488e8606?auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover img-mono" alt="Archive">
+                            <div class="absolute inset-0 bg-mono-pitch/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <span class="text-[10px] uppercase tracking-widest text-white border border-white px-3 py-1">Manage</span>
+                            </div>
+                        </div>
+                        <div class="aspect-[4/5] bg-mono-dark fine-border relative group overflow-hidden cursor-pointer">
+                            <img src="https://images.unsplash.com/photo-1518098268026-4e89f1a2cd8e?auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover img-mono" alt="Archive">
+                            <div class="absolute inset-0 bg-mono-pitch/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <span class="text-[10px] uppercase tracking-widest text-white border border-white px-3 py-1">Manage</span>
+                            </div>
+                        </div>
+                        <div class="aspect-[4/5] border border-dashed border-white/20 flex flex-col items-center justify-center text-mono-muted hover:text-white hover:border-white/50 transition-all cursor-pointer">
+                            <i data-lucide="plus" class="w-6 h-6 mb-2"></i>
+                            <span class="text-[10px] uppercase tracking-widest">Drop Files</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 8. SETTINGS TAB -->
+                <div id="tab-settings" class="tab-content hidden max-w-2xl">
+                    <div class="bg-mono-dark fine-border p-8 rounded-sm space-y-8">
+                        <div>
+                            <h3 class="text-sm font-serif text-white mb-4 border-b border-white/10 pb-2">Institutional Identity</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-[10px] uppercase tracking-widest text-mono-muted mb-2">Entity Name</label>
+                                    <input type="text" value="Aether & Stone" class="w-full admin-input py-2 px-3 text-sm rounded-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] uppercase tracking-widest text-mono-muted mb-2">Primary Dispatch Email</label>
+                                    <input type="email" value="concierge@aetherstone.com" class="w-full admin-input py-2 px-3 text-sm rounded-sm">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="text-sm font-serif text-white mb-4 border-b border-white/10 pb-2">Operational Parameters</h3>
+                            <div class="space-y-4">
+                                <label class="flex items-center space-x-3 cursor-pointer">
+                                    <input type="checkbox" checked class="form-checkbox bg-transparent border-white/20 text-white rounded-none focus:ring-0 w-4 h-4">
+                                    <span class="text-sm text-mono-muted">Require dual-authorization for high-value transactions</span>
+                                </label>
+                                <label class="flex items-center space-x-3 cursor-pointer">
+                                    <input type="checkbox" class="form-checkbox bg-transparent border-white/20 text-white rounded-none focus:ring-0 w-4 h-4">
+                                    <span class="text-sm text-mono-muted">Enable public review submissions</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="pt-4">
+                            <button class="bg-white text-mono-pitch hover:bg-gray-200 transition-colors py-3 px-8 text-xs tracking-widest uppercase font-semibold rounded-sm">
+                                Save Configuration
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Login Logic
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const loginScreen = document.getElementById('loginScreen');
+            const dashboardApp = document.getElementById('dashboardApp');
+            
+            // Fade out login
+            loginScreen.style.opacity = '0';
+            setTimeout(() => {
+                loginScreen.classList.add('hidden');
+                // Fade in dashboard
+                dashboardApp.classList.remove('opacity-0', 'pointer-events-none');
+                dashboardApp.classList.add('opacity-100');
+            }, 700);
+        });
+
+        function logout() {
+            const loginScreen = document.getElementById('loginScreen');
+            const dashboardApp = document.getElementById('dashboardApp');
+            
+            dashboardApp.classList.remove('opacity-100');
+            dashboardApp.classList.add('opacity-0', 'pointer-events-none');
+            
+            setTimeout(() => {
+                loginScreen.classList.remove('hidden');
+                setTimeout(() => {
+                    loginScreen.style.opacity = '1';
+                }, 50);
+            }, 700);
+            
+            switchTab('overview'); // Reset to default tab
+        }
+
+        // Tab Switching Logic
+        const viewTitles = {
+            'overview': 'System Overview',
+            'tours': 'Expedition Registry',
+            'bookings': 'Booking Manifests',
+            'leads': 'Client Intelligence',
+            'payments': 'Financial Ledger',
+            'reviews': 'Client Endorsements',
+            'gallery': 'Visual Archives',
+            'settings': 'System Parameters'
+        };
+
+        function switchTab(tabId) {
+            // Update Title
+            document.getElementById('viewTitle').innerText = viewTitles[tabId];
+
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.add('hidden');
+                el.classList.remove('block');
+            });
+
+            // Show target tab
+            const target = document.getElementById('tab-' + tabId);
+            if(target) {
+                target.classList.remove('hidden');
+                target.classList.add('block');
+            }
+
+            // Update nav button states
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                // Reset styling
+                btn.classList.remove('text-white', 'bg-white/5');
+                btn.classList.add('text-mono-muted');
+                
+                // Active styling
+                if (btn.getAttribute('data-target') === tabId) {
+                    btn.classList.remove('text-mono-muted');
+                    btn.classList.add('text-white', 'bg-white/5');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
